@@ -4,333 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Sistema de Alunos Pokémon</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .tab {
-            padding: 12px 24px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            border-radius: 10px 10px 0 0;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            color: #666;
-        }
-
-        .tab.active {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .tab:hover:not(.active) {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-section {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .student-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #667eea;
-            transition: all 0.3s ease;
-        }
-
-        .student-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .student-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .student-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .student-points {
-            font-size: 1.1rem;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .pokemon-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .pokemon-sprite {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .pokemon-details {
-            flex: 1;
-        }
-
-        .pokemon-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .evolution-level {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .progress-bar {
-            background: #e0e0e0;
-            border-radius: 10px;
-            height: 8px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-
-        .ranking-list {
-            counter-reset: ranking;
-        }
-
-        .ranking-item {
-            counter-increment: ranking;
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .ranking-item:hover {
-            transform: translateX(10px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .ranking-number {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .ranking-item:nth-child(1) .ranking-number {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            color: #333;
-        }
-
-        .ranking-item:nth-child(2) .ranking-number {
-            background: linear-gradient(45deg, #c0c0c0, #e6e6e6);
-            color: #333;
-        }
-
-        .ranking-item:nth-child(3) .ranking-number {
-            background: linear-gradient(45deg, #cd7f32, #daa520);
-            color: white;
-        }
-
-        .message {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .tabs {
-                flex-wrap: wrap;
-            }
-
-            .student-info {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .pokemon-info {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -340,7 +15,8 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('students')">👥 Alunos</button>
             <button class="tab" onclick="showTab('register-student')">➕ Cadastrar Aluno</button>
-            <button class="tab" onclick="showTab('activities')">📝 Atividades</button>
+            <button class="tab" onclick="showTab('manage-activities')">📋 Gerenciar Atividades</button>
+            <button class="tab" onclick="showTab('activities')">📝 Atribuir Pontos</button>
             <button class="tab" onclick="showTab('ranking')">🏆 Ranking</button>
         </div>
 
@@ -369,6 +45,35 @@
             </div>
         </div>
 
+        <!-- Gerenciar Atividades -->
+        <div id="manage-activities" class="tab-content">
+            <div class="form-section">
+                <h2>📋 Criar Nova Atividade</h2>
+                <form id="create-activity-form">
+                    <div class="form-group">
+                        <label for="new-activity-name">Nome da Atividade:</label>
+                        <input type="text" id="new-activity-name" required
+                            placeholder="Ex: Prova de Matemática, Trabalho de História...">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-activity-points">Pontuação Padrão:</label>
+                        <input type="number" id="new-activity-points" required min="1" max="100"
+                            placeholder="Pontuação sugerida (1-100)">
+                    </div>
+                    <div class="form-group">
+                        <label for="activity-description">Descrição (opcional):</label>
+                        <input type="text" id="activity-description" placeholder="Breve descrição da atividade">
+                    </div>
+                    <button type="submit">Criar Atividade</button>
+                </form>
+            </div>
+
+            <div class="form-section">
+                <h3>📝 Atividades Criadas</h3>
+                <div id="created-activities-list"></div>
+            </div>
+        </div>
+
         <!-- Listar Alunos -->
         <div id="students" class="tab-content active">
             <h2>👥 Alunos Cadastrados</h2>
@@ -378,7 +83,7 @@
         <!-- Atividades -->
         <div id="activities" class="tab-content">
             <div class="form-section">
-                <h2>📝 Adicionar Atividade</h2>
+                <h2>📝 Atribuir Pontos</h2>
                 <form id="activity-form">
                     <div class="form-group">
                         <label for="student-select">Aluno:</label>
@@ -387,22 +92,35 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="activity-name">Nome da Atividade:</label>
-                        <input type="text" id="activity-name" required placeholder="Ex: Prova de Matemática">
+                        <label for="activity-select">Atividade:</label>
+                        <select id="activity-select" required>
+                            <option value="">Selecione uma atividade</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="activity-points">Pontuação:</label>
                         <input type="number" id="activity-points" required min="1" max="100"
                             placeholder="Digite a pontuação (1-100)">
                     </div>
-                    <button type="submit">Adicionar Atividade</button>
+                    <button type="submit">Atribuir Pontos</button>
                 </form>
             </div>
         </div>
 
         <!-- Ranking -->
         <div id="ranking" class="tab-content">
-            <h2>🏆 Top 5 Alunos</h2>
+            <div class="form-section">
+                <h2>🏆 Top 5 Alunos</h2>
+                <div class="form-group">
+                    <label for="pokemon-filter">Filtrar por Pokémon:</label>
+                    <select id="pokemon-filter" onchange="displayRanking()">
+                        <option value="all">🌟 Todos os Pokémons</option>
+                        <option value="bulbasaur">🌱 Família Bulbasaur</option>
+                        <option value="charmander">🔥 Família Charmander</option>
+                        <option value="squirtle">💧 Família Squirtle</option>
+                    </select>
+                </div>
+            </div>
             <div id="ranking-list" class="ranking-list"></div>
         </div>
     </div>
@@ -427,6 +145,7 @@
         // Armazenamento de dados (usando variáveis JavaScript ao invés de localStorage)
         let students = [];
         let activities = [];
+        let createdActivities = [];
 
         // Funções de navegação entre abas
         function showTab(tabName) {
@@ -445,6 +164,9 @@
                 displayRanking();
             } else if (tabName === 'activities') {
                 updateStudentSelect();
+                updateActivitySelect();
+            } else if (tabName === 'manage-activities') {
+                displayCreatedActivities();
             }
         }
 
@@ -475,6 +197,40 @@
                 emoji: pokemon.emojis[evolutionLevel]
             };
         }
+
+        // Criar nova atividade
+        document.getElementById('create-activity-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('new-activity-name').value.trim();
+            const defaultPoints = parseInt(document.getElementById('new-activity-points').value);
+            const description = document.getElementById('activity-description').value.trim();
+
+            if (!name || !defaultPoints) {
+                showMessage('Por favor, preencha os campos obrigatórios!', 'error');
+                return;
+            }
+
+            // Verificar se a atividade já existe
+            if (createdActivities.find(activity => activity.name.toLowerCase() === name.toLowerCase())) {
+                showMessage('Atividade já existe!', 'error');
+                return;
+            }
+
+            const activity = {
+                id: Date.now(),
+                name: name,
+                defaultPoints: defaultPoints,
+                description: description || ''
+            };
+
+            createdActivities.push(activity);
+
+            showMessage(`Atividade "${name}" criada com sucesso!`);
+            document.getElementById('create-activity-form').reset();
+            displayCreatedActivities();
+            updateActivitySelect();
+        });
 
         // Cadastrar aluno
         document.getElementById('student-form').addEventListener('submit', function (e) {
@@ -513,17 +269,19 @@
             e.preventDefault();
 
             const studentId = parseInt(document.getElementById('student-select').value);
-            const activityName = document.getElementById('activity-name').value.trim();
+            const activityId = parseInt(document.getElementById('activity-select').value);
             const points = parseInt(document.getElementById('activity-points').value);
 
-            if (!studentId || !activityName || !points) {
+            if (!studentId || !activityId || !points) {
                 showMessage('Por favor, preencha todos os campos!', 'error');
                 return;
             }
 
             const student = students.find(s => s.id === studentId);
-            if (!student) {
-                showMessage('Aluno não encontrado!', 'error');
+            const selectedActivity = createdActivities.find(a => a.id === activityId);
+
+            if (!student || !selectedActivity) {
+                showMessage('Aluno ou atividade não encontrados!', 'error');
                 return;
             }
 
@@ -534,14 +292,15 @@
             const activity = {
                 id: Date.now(),
                 studentId: studentId,
-                name: activityName,
+                activityId: activityId,
+                name: selectedActivity.name,
                 points: points,
                 date: new Date().toLocaleDateString('pt-BR')
             };
 
             activities.push(activity);
 
-            let message = `Atividade "${activityName}" adicionada para ${student.name}! (+${points} pontos)`;
+            let message = `Atividade "${selectedActivity.name}" atribuída para ${student.name}! (+${points} pontos)`;
 
             if (newLevel > oldLevel) {
                 const pokemonInfo = getPokemonInfo(student.pokemonType, newLevel);
@@ -551,6 +310,71 @@
             showMessage(message);
             document.getElementById('activity-form').reset();
         });
+
+        // Atualizar select de atividades
+        function updateActivitySelect() {
+            const select = document.getElementById('activity-select');
+            const pointsInput = document.getElementById('activity-points');
+
+            select.innerHTML = '<option value="">Selecione uma atividade</option>';
+
+            createdActivities.forEach(activity => {
+                const option = document.createElement('option');
+                option.value = activity.id;
+                option.textContent = activity.name;
+                option.setAttribute('data-points', activity.defaultPoints);
+                select.appendChild(option);
+            });
+
+            // Auto-preencher pontuação quando selecionar atividade
+            select.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.hasAttribute('data-points')) {
+                    pointsInput.value = selectedOption.getAttribute('data-points');
+                } else {
+                    pointsInput.value = '';
+                }
+            });
+        }
+
+        // Exibir atividades criadas
+        function displayCreatedActivities() {
+            const container = document.getElementById('created-activities-list');
+
+            if (createdActivities.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; margin-top: 20px;">Nenhuma atividade criada ainda. 📝</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            createdActivities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-info">
+                        <div class="activity-name">${activity.name}</div>
+                        <div class="activity-meta">
+                            ${activity.description ? activity.description + ' • ' : ''}
+                            Pontuação padrão: ${activity.defaultPoints}
+                        </div>
+                    </div>
+                    <div class="activity-points">${activity.defaultPoints} pts</div>
+                    <button class="delete-btn" onclick="deleteActivity(${activity.id})">🗑️</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Deletar atividade
+        function deleteActivity(activityId) {
+            if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+                createdActivities = createdActivities.filter(activity => activity.id !== activityId);
+                displayCreatedActivities();
+                updateActivitySelect();
+                showMessage('Atividade excluída com sucesso!');
+            }
+        }
 
         // Atualizar select de alunos
         function updateStudentSelect() {
@@ -613,17 +437,49 @@
         // Exibir ranking
         function displayRanking() {
             const container = document.getElementById('ranking-list');
+            const filter = document.getElementById('pokemon-filter').value;
 
             if (students.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Nenhum aluno para ranquear ainda. 🏆</p>';
                 return;
             }
 
+            // Filtrar alunos por Pokémon se necessário
+            let filteredStudents = students;
+            if (filter !== 'all') {
+                filteredStudents = students.filter(student => student.pokemonType === filter);
+            }
+
+            if (filteredStudents.length === 0) {
+                const pokemonNames = {
+                    'bulbasaur': '🌱 Família Bulbasaur',
+                    'charmander': '🔥 Família Charmander',
+                    'squirtle': '💧 Família Squirtle'
+                };
+                container.innerHTML = `<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Nenhum aluno da ${pokemonNames[filter]} encontrado. 🔍</p>`;
+                return;
+            }
+
             // Ordenar alunos por pontuação (decrescente)
-            const sortedStudents = [...students].sort((a, b) => b.totalPoints - a.totalPoints);
+            const sortedStudents = [...filteredStudents].sort((a, b) => b.totalPoints - a.totalPoints);
             const top5 = sortedStudents.slice(0, 5);
 
             container.innerHTML = '';
+
+            // Título do ranking baseado no filtro
+            const titleElement = document.createElement('div');
+            titleElement.style.cssText = 'text-align: center; margin-bottom: 25px; font-size: 1.2rem; color: #667eea; font-weight: 600;';
+            if (filter === 'all') {
+                titleElement.textContent = '🌟 Ranking Geral - Top 5';
+            } else {
+                const pokemonNames = {
+                    'bulbasaur': '🌱 Ranking Família Bulbasaur',
+                    'charmander': '🔥 Ranking Família Charmander',
+                    'squirtle': '💧 Ranking Família Squirtle'
+                };
+                titleElement.textContent = pokemonNames[filter];
+            }
+            container.appendChild(titleElement);
 
             top5.forEach((student, index) => {
                 const evolutionLevel = getEvolutionLevel(student.totalPoints);
@@ -648,6 +504,8 @@
         document.addEventListener('DOMContentLoaded', function () {
             displayStudents();
             updateStudentSelect();
+            updateActivitySelect();
+            displayCreatedActivities();
         });
     </script>
 </body>
