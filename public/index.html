@@ -40,7 +40,7 @@
                             <option value="squirtle">💧 Squirtle</option>
                         </select>
                     </div>
-                    <button type="submit">Cadastrar Aluno</button>
+                    <button type="submit" id="student-submit-btn">Cadastrar Aluno</button>
                 </form>
             </div>
         </div>
@@ -64,7 +64,7 @@
                         <label for="activity-description">Descrição (opcional):</label>
                         <input type="text" id="activity-description" placeholder="Breve descrição da atividade">
                     </div>
-                    <button type="submit">Criar Atividade</button>
+                    <button type="submit" id="activity-submit-btn">Criar Atividade</button>
                 </form>
             </div>
 
@@ -102,7 +102,7 @@
                         <input type="number" id="activity-points" required min="1" max="100"
                             placeholder="Digite a pontuação (1-100)">
                     </div>
-                    <button type="submit">Atribuir Pontos</button>
+                    <button type="submit" id="assign-activity-btn">Atribuir Pontos</button>
                 </form>
             </div>
         </div>
@@ -126,29 +126,102 @@
     </div>
 
     <script>
+        // Configuração da API
+        const API_BASE_URL = 'http://localhost:3000/api';
+
         // Dados dos Pokémons e suas evoluções
         const pokemonData = {
             bulbasaur: {
                 stages: ['🌱 Bulbasaur', '🌿 Ivysaur', '🌸 Venusaur'],
-                emojis: ['🌱', '🌿', '🌸']
+                emojis: ['🌱', '🌿', '🌸'],
+                images: [
+                    'images/0001Bulbasaur.png',
+                    'images/002Ivysaur.png',
+                    'images/0003Venusaur.png'
+                ]
             },
             charmander: {
                 stages: ['🔥 Charmander', '🔥 Charmeleon', '🔥 Charizard'],
-                emojis: ['🔥', '🔥', '🔥']
+                emojis: ['🔥', '🔥', '🔥'],
+                images: [
+                    'images/0004Charmander.png',
+                    'images/005Charmeleon.png',
+                    'images/0006Charizard.png'
+                ]
             },
             squirtle: {
                 stages: ['💧 Squirtle', '💧 Wartortle', '💧 Blastoise'],
-                emojis: ['💧', '💧', '💧']
+                emojis: ['💧', '💧', '💧'],
+                images: [
+                    'images/0007Squirtle.png',
+                    'images/0008Wartortle.png',
+                    'images/0009Blastoise.png'
+                ]
             }
         };
 
-        // Armazenamento de dados (usando variáveis JavaScript ao invés de localStorage)
+        // Variáveis globais para armazenar dados
         let students = [];
         let activities = [];
         let createdActivities = [];
 
+        // Funções utilitárias para API
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Erro na API');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Erro na API:', error);
+                throw error;
+            }
+        }
+
+        // Carregar dados da API
+        async function loadStudents() {
+            try {
+                const response = await apiRequest('/students');
+                students = response.data;
+            } catch (error) {
+                showMessage('Erro ao carregar estudantes: ' + error.message, 'error');
+                students = [];
+            }
+        }
+
+        async function loadCreatedActivities() {
+            try {
+                const response = await apiRequest('/created-activities');
+                createdActivities = response.data;
+            } catch (error) {
+                showMessage('Erro ao carregar atividades: ' + error.message, 'error');
+                createdActivities = [];
+            }
+        }
+
+        async function loadActivities() {
+            try {
+                const response = await apiRequest('/activities');
+                activities = response.data;
+            } catch (error) {
+                showMessage('Erro ao carregar atividades atribuídas: ' + error.message, 'error');
+                activities = [];
+            }
+        }
+
         // Funções de navegação entre abas
-        function showTab(tabName) {
+        async function showTab(tabName) {
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.tab-content');
 
@@ -158,14 +231,20 @@
             document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName).classList.add('active');
 
+            // Carregar dados conforme necessário
             if (tabName === 'students') {
+                await loadStudents();
                 displayStudents();
             } else if (tabName === 'ranking') {
+                await loadStudents();
                 displayRanking();
             } else if (tabName === 'activities') {
+                await loadStudents();
+                await loadCreatedActivities();
                 updateStudentSelect();
                 updateActivitySelect();
             } else if (tabName === 'manage-activities') {
+                await loadCreatedActivities();
                 displayCreatedActivities();
             }
         }
@@ -181,7 +260,27 @@
 
             setTimeout(() => {
                 container.innerHTML = '';
-            }, 3000);
+            }, 5000);
+        }
+
+        // Função para adicionar loading ao botão
+        function setButtonLoading(buttonId, loading) {
+            const button = document.getElementById(buttonId);
+            if (loading) {
+                button.classList.add('btn-loading');
+                button.innerHTML = '<span class="loading"></span> Processando...';
+                button.disabled = true;
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                // Restaurar texto original baseado no ID
+                const originalTexts = {
+                    'student-submit-btn': 'Cadastrar Aluno',
+                    'activity-submit-btn': 'Criar Atividade',
+                    'assign-activity-btn': 'Atribuir Pontos'
+                };
+                button.innerHTML = originalTexts[buttonId] || 'Enviar';
+            }
         }
 
         // Função para calcular nível de evolução baseado na pontuação
@@ -194,121 +293,113 @@
             const pokemon = pokemonData[type];
             return {
                 name: pokemon.stages[evolutionLevel],
-                emoji: pokemon.emojis[evolutionLevel]
+                emoji: pokemon.emojis[evolutionLevel],
+                image: pokemon.images[evolutionLevel]
             };
         }
 
         // Criar nova atividade
-        document.getElementById('create-activity-form').addEventListener('submit', function (e) {
+        document.getElementById('create-activity-form').addEventListener('submit', async function (e) {
             e.preventDefault();
+            setButtonLoading('activity-submit-btn', true);
 
-            const name = document.getElementById('new-activity-name').value.trim();
-            const defaultPoints = parseInt(document.getElementById('new-activity-points').value);
-            const description = document.getElementById('activity-description').value.trim();
+            try {
+                const name = document.getElementById('new-activity-name').value.trim();
+                const defaultPoints = parseInt(document.getElementById('new-activity-points').value);
+                const description = document.getElementById('activity-description').value.trim();
 
-            if (!name || !defaultPoints) {
-                showMessage('Por favor, preencha os campos obrigatórios!', 'error');
-                return;
+                const response = await apiRequest('/created-activities', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        defaultPoints,
+                        description
+                    })
+                });
+
+                showMessage(response.message);
+                document.getElementById('create-activity-form').reset();
+                await loadCreatedActivities();
+                displayCreatedActivities();
+                updateActivitySelect();
+
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setButtonLoading('activity-submit-btn', false);
             }
-
-            // Verificar se a atividade já existe
-            if (createdActivities.find(activity => activity.name.toLowerCase() === name.toLowerCase())) {
-                showMessage('Atividade já existe!', 'error');
-                return;
-            }
-
-            const activity = {
-                id: Date.now(),
-                name: name,
-                defaultPoints: defaultPoints,
-                description: description || ''
-            };
-
-            createdActivities.push(activity);
-
-            showMessage(`Atividade "${name}" criada com sucesso!`);
-            document.getElementById('create-activity-form').reset();
-            displayCreatedActivities();
-            updateActivitySelect();
         });
 
         // Cadastrar aluno
-        document.getElementById('student-form').addEventListener('submit', function (e) {
+        document.getElementById('student-form').addEventListener('submit', async function (e) {
             e.preventDefault();
+            setButtonLoading('student-submit-btn', true);
 
-            const name = document.getElementById('student-name').value.trim();
-            const pokemonType = document.getElementById('pokemon-choice').value;
+            try {
+                const name = document.getElementById('student-name').value.trim();
+                const pokemonType = document.getElementById('pokemon-choice').value;
 
-            if (!name || !pokemonType) {
-                showMessage('Por favor, preencha todos os campos!', 'error');
-                return;
+                const response = await apiRequest('/students', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        pokemonType
+                    })
+                });
+
+                showMessage(response.message);
+                document.getElementById('student-form').reset();
+                await loadStudents();
+                updateStudentSelect();
+
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setButtonLoading('student-submit-btn', false);
             }
-
-            // Verificar se o aluno já existe
-            if (students.find(student => student.name.toLowerCase() === name.toLowerCase())) {
-                showMessage('Aluno já cadastrado!', 'error');
-                return;
-            }
-
-            const student = {
-                id: Date.now(),
-                name: name,
-                pokemonType: pokemonType,
-                totalPoints: 0
-            };
-
-            students.push(student);
-
-            showMessage(`Aluno ${name} cadastrado com sucesso!`);
-            document.getElementById('student-form').reset();
-            updateStudentSelect();
         });
 
         // Adicionar atividade
-        document.getElementById('activity-form').addEventListener('submit', function (e) {
+        document.getElementById('activity-form').addEventListener('submit', async function (e) {
             e.preventDefault();
+            setButtonLoading('assign-activity-btn', true);
 
-            const studentId = parseInt(document.getElementById('student-select').value);
-            const activityId = parseInt(document.getElementById('activity-select').value);
-            const points = parseInt(document.getElementById('activity-points').value);
+            try {
+                const studentId = parseInt(document.getElementById('student-select').value);
+                const activityId = parseInt(document.getElementById('activity-select').value);
+                const points = parseInt(document.getElementById('activity-points').value);
 
-            if (!studentId || !activityId || !points) {
-                showMessage('Por favor, preencha todos os campos!', 'error');
-                return;
+                const response = await apiRequest('/activities', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        studentId,
+                        activityId,
+                        points
+                    })
+                });
+
+                let message = response.message;
+
+                if (response.data && response.data.evolved) {
+                    const pokemonInfo = getPokemonInfo(
+                        response.data.student.pokemonType,
+                        response.data.newLevel
+                    );
+                    message += ` 🎉 ${response.data.student.name} evoluiu para ${pokemonInfo.name}!`;
+                }
+
+                showMessage(message);
+                document.getElementById('activity-form').reset();
+
+                // Recarregar dados para refletir mudanças
+                await loadStudents();
+                await loadActivities();
+
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                setButtonLoading('assign-activity-btn', false);
             }
-
-            const student = students.find(s => s.id === studentId);
-            const selectedActivity = createdActivities.find(a => a.id === activityId);
-
-            if (!student || !selectedActivity) {
-                showMessage('Aluno ou atividade não encontrados!', 'error');
-                return;
-            }
-
-            const oldLevel = getEvolutionLevel(student.totalPoints);
-            student.totalPoints += points;
-            const newLevel = getEvolutionLevel(student.totalPoints);
-
-            const activity = {
-                id: Date.now(),
-                studentId: studentId,
-                activityId: activityId,
-                name: selectedActivity.name,
-                points: points,
-                date: new Date().toLocaleDateString('pt-BR')
-            };
-
-            activities.push(activity);
-
-            let message = `Atividade "${selectedActivity.name}" atribuída para ${student.name}! (+${points} pontos)`;
-
-            if (newLevel > oldLevel) {
-                const pokemonInfo = getPokemonInfo(student.pokemonType, newLevel);
-                message += ` 🎉 ${student.name} evoluiu para ${pokemonInfo.name}!`;
-            }
-
-            showMessage(message);
-            document.getElementById('activity-form').reset();
         });
 
         // Atualizar select de atividades
@@ -367,12 +458,21 @@
         }
 
         // Deletar atividade
-        function deleteActivity(activityId) {
+        async function deleteActivity(activityId) {
             if (confirm('Tem certeza que deseja excluir esta atividade?')) {
-                createdActivities = createdActivities.filter(activity => activity.id !== activityId);
-                displayCreatedActivities();
-                updateActivitySelect();
-                showMessage('Atividade excluída com sucesso!');
+                try {
+                    const response = await apiRequest(`/created-activities/${activityId}`, {
+                        method: 'DELETE'
+                    });
+
+                    showMessage(response.message);
+                    await loadCreatedActivities();
+                    displayCreatedActivities();
+                    updateActivitySelect();
+
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
             }
         }
 
@@ -413,7 +513,10 @@
                         <div class="student-points">${student.totalPoints} pontos</div>
                     </div>
                     <div class="pokemon-info">
-                        <div class="pokemon-sprite">${pokemonInfo.emoji}</div>
+                        <div class="pokemon-sprite">
+                            <img src="${pokemonInfo.image}" alt="${pokemonInfo.name}" class="pokemon-image" onerror="this.style.display='none'; this.nextSibling.style.display='flex';">
+                            <div style="display:none; font-size: 2rem;">${pokemonInfo.emoji}</div>
+                        </div>
                         <div class="pokemon-details">
                             <div class="pokemon-name">${pokemonInfo.name}</div>
                             <div class="evolution-level">
@@ -435,77 +538,77 @@
         }
 
         // Exibir ranking
-        function displayRanking() {
+        async function displayRanking() {
             const container = document.getElementById('ranking-list');
             const filter = document.getElementById('pokemon-filter').value;
 
-            if (students.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Nenhum aluno para ranquear ainda. 🏆</p>';
-                return;
+            try {
+                const response = await apiRequest(`/ranking?pokemon=${filter}&limit=5`);
+                const ranking = response.data;
+
+                if (ranking.length === 0) {
+                    const pokemonNames = {
+                        'all': '🌟 Ranking Geral',
+                        'bulbasaur': '🌱 Família Bulbasaur',
+                        'charmander': '🔥 Família Charmander',
+                        'squirtle': '💧 Família Squirtle'
+                    };
+                    container.innerHTML = `<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Nenhum aluno encontrado para ${pokemonNames[filter]}. 🔍</p>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                // Título do ranking baseado no filtro
+                const titleElement = document.createElement('div');
+                titleElement.style.cssText = 'text-align: center; margin-bottom: 25px; font-size: 1.2rem; color: #667eea; font-weight: 600;';
+                if (filter === 'all') {
+                    titleElement.textContent = '🌟 Ranking Geral - Top 5';
+                } else {
+                    const pokemonNames = {
+                        'bulbasaur': '🌱 Ranking Família Bulbasaur',
+                        'charmander': '🔥 Ranking Família Charmander',
+                        'squirtle': '💧 Ranking Família Squirtle'
+                    };
+                    titleElement.textContent = pokemonNames[filter];
+                }
+                container.appendChild(titleElement);
+
+                ranking.forEach((student, index) => {
+                    const evolutionLevel = getEvolutionLevel(student.totalPoints);
+                    const pokemonInfo = getPokemonInfo(student.pokemonType, evolutionLevel);
+
+                    const item = document.createElement('div');
+                    item.className = 'ranking-item';
+                    item.innerHTML = `
+                        <div class="ranking-number">${index + 1}</div>
+                        <div class="pokemon-sprite">${pokemonInfo.emoji}</div>
+                        <div style="flex: 1;">
+                            <div class="student-name">${student.name}</div>
+                            <div class="pokemon-name">${pokemonInfo.name}</div>
+                        </div>
+                        <div class="student-points">${student.totalPoints} pontos</div>
+                    `;
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                showMessage('Erro ao carregar ranking: ' + error.message, 'error');
+                container.innerHTML = '<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Erro ao carregar ranking. 🏆</p>';
             }
-
-            // Filtrar alunos por Pokémon se necessário
-            let filteredStudents = students;
-            if (filter !== 'all') {
-                filteredStudents = students.filter(student => student.pokemonType === filter);
-            }
-
-            if (filteredStudents.length === 0) {
-                const pokemonNames = {
-                    'bulbasaur': '🌱 Família Bulbasaur',
-                    'charmander': '🔥 Família Charmander',
-                    'squirtle': '💧 Família Squirtle'
-                };
-                container.innerHTML = `<p style="text-align: center; color: #666; font-size: 1.2rem; margin-top: 40px;">Nenhum aluno da ${pokemonNames[filter]} encontrado. 🔍</p>`;
-                return;
-            }
-
-            // Ordenar alunos por pontuação (decrescente)
-            const sortedStudents = [...filteredStudents].sort((a, b) => b.totalPoints - a.totalPoints);
-            const top5 = sortedStudents.slice(0, 5);
-
-            container.innerHTML = '';
-
-            // Título do ranking baseado no filtro
-            const titleElement = document.createElement('div');
-            titleElement.style.cssText = 'text-align: center; margin-bottom: 25px; font-size: 1.2rem; color: #667eea; font-weight: 600;';
-            if (filter === 'all') {
-                titleElement.textContent = '🌟 Ranking Geral - Top 5';
-            } else {
-                const pokemonNames = {
-                    'bulbasaur': '🌱 Ranking Família Bulbasaur',
-                    'charmander': '🔥 Ranking Família Charmander',
-                    'squirtle': '💧 Ranking Família Squirtle'
-                };
-                titleElement.textContent = pokemonNames[filter];
-            }
-            container.appendChild(titleElement);
-
-            top5.forEach((student, index) => {
-                const evolutionLevel = getEvolutionLevel(student.totalPoints);
-                const pokemonInfo = getPokemonInfo(student.pokemonType, evolutionLevel);
-
-                const item = document.createElement('div');
-                item.className = 'ranking-item';
-                item.innerHTML = `
-                    <div class="ranking-number">${index + 1}</div>
-                    <div class="pokemon-sprite">${pokemonInfo.emoji}</div>
-                    <div style="flex: 1;">
-                        <div class="student-name">${student.name}</div>
-                        <div class="pokemon-name">${pokemonInfo.name}</div>
-                    </div>
-                    <div class="student-points">${student.totalPoints} pontos</div>
-                `;
-                container.appendChild(item);
-            });
         }
 
         // Inicialização
-        document.addEventListener('DOMContentLoaded', function () {
-            displayStudents();
-            updateStudentSelect();
-            updateActivitySelect();
-            displayCreatedActivities();
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                await loadStudents();
+                await loadCreatedActivities();
+                displayStudents();
+                updateStudentSelect();
+                updateActivitySelect();
+            } catch (error) {
+                showMessage('Erro ao carregar dados iniciais: ' + error.message, 'error');
+            }
         });
     </script>
 </body>
